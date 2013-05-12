@@ -64,6 +64,19 @@
         </dependency>
     </dependencies>
 
+    <properties>
+        <skip-download-jsdoc3>false</skip-download-jsdoc3>
+    </properties>
+
+    <profiles>
+        <profile>
+            <id>skip-download-jsdoc3</id>
+            <properties>
+                <skip-download-jsdoc3>true</skip-download-jsdoc3>
+            </properties>
+        </profile>
+    </profiles>
+
     <build>
         <plugins>
             <plugin>
@@ -100,6 +113,7 @@
                             <goal>download-single</goal>
                         </goals>
                         <configuration>
+                            <skip>${skip-download-jsdoc3}</skip>
                             <serverId>jsdoc3-github-master</serverId>
                             <url>https://github.com</url>
                             <fromFile>jsdoc3/jsdoc/archive/master.zip</fromFile>
@@ -111,12 +125,13 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.6</version>
+                <version>1.7</version>
                 <executions>
                     <execution>
                         <id>inn</id>
                         <phase>process-resources</phase>
                         <configuration>
+                            <skip>${skip-download-jsdoc3}</skip>
                             <target>
                                 <echo message="unpacking jsdoc3 zip and removing binaries" />
                                 <unzip src="${project.build.directory}/jsdoc3/master.zip" dest="${project.build.directory}/jsdoc3/" />
