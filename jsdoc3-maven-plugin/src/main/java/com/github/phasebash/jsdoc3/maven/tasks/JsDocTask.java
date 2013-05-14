@@ -4,7 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -70,6 +69,10 @@ final class JsDocTask implements Task {
     }
 
     /**
+     * Some file paths passed to jsdoc.js need to be URIs to work on Windows.
+     *
+     * See "https://github.com/mozilla/rhino/issues/10".
+     *
      * @param context
      * @return
      */
@@ -78,24 +81,33 @@ final class JsDocTask implements Task {
 
         final File basePath = context.getJsDocDir();
         final String javaHome = System.getProperty("java.home");
+        // Leave this path alone, as it's O/S specific
         final File java = new File(javaHome, "bin" + File.separator + "java");
 
         arguments.add(java.getAbsolutePath());
         arguments.add("-classpath");
+        // Leave this path alone, as it's O/S specific
         arguments.add(new File(basePath, "rhino" + File.separator + "js.jar").getAbsolutePath());
         arguments.add("org.mozilla.javascript.tools.shell.Main");
 
         for (final String module : MODULES) {
             arguments.add("-modules");
             final File file = new File(basePath, module);
-            arguments.add(file.getAbsolutePath());
+            final String modulePath = toURIStr(file);
+            arguments.add(modulePath);
         }
 
         arguments.add("-modules");
-        arguments.add(basePath.getAbsolutePath());
+        arguments.add(toURIStr(basePath));
 
-        arguments.add(basePath + File.separator + "jsdoc.js");
-        arguments.add("--dirname=" + basePath + File.separator);
+        arguments.add(toURIStr(new File(basePath, "jsdoc.js")));
+        arguments.add("--dirname=" + toURIStr(basePath));
+        // Following doesn't work.
+        // E.g. "Illegal character in path at index 8:
+        // file:/d:\dev\git_repos\pib-x-js\js\target\jsdoc3\jsdoc/rhino/fs"
+        // at
+        // org.mozilla.javascript.commonjs.module.provider.UrlModuleSourceProvider.loadFromPathList(UrlModuleSourceProvider.java:108)
+        // arguments.add("--dirname=" + basePath.getAbsolutePath());
 
         if (context.isRecursive()) {
             arguments.add("-r");
@@ -106,13 +118,20 @@ final class JsDocTask implements Task {
         }
 
         arguments.add("-d");
+        // arguments.add(toURIStr(context.getOutputDir()));
         arguments.add(context.getOutputDir().getAbsolutePath());
 
         for (final File sourceFile : context.getSourceDir()) {
+            // arguments.add(toURIStr(sourceFile));
             arguments.add(sourceFile.getAbsolutePath());
         }
 
         return arguments;
+    }
+
+    private String toURIStr(File f) {
+        String path = f.getAbsoluteFile().toURI().toString();
+        return path;
     }
 
     private String buildErrorMessage(int exitCode, ByteArrayOutputStream out,
