@@ -50,8 +50,8 @@ final class JsDocTask implements Task {
             throw new TaskException("Unable to execute jsdoc tasks in new JVM.", e);
         }
 
-        new StreamGobbler(process.getInputStream(), "out", out).start();
-        new StreamGobbler(process.getErrorStream(), "err", err).start();
+        new StreamGobbler(process.getInputStream(), out).start();
+        new StreamGobbler(process.getErrorStream(), err).start();
 
         try {
             final int exitCode = process.waitFor();
