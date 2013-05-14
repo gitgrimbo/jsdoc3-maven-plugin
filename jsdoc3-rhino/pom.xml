@@ -55,6 +55,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
+                <!-- http://maven.apache.org/plugins/maven-antrun-plugin/run-mojo.html#skip -->
                 <version>1.7</version>
                 <executions>
                     <execution>
