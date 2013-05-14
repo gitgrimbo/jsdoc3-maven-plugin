@@ -1,3 +1,5 @@
+/* grimbo: wrap all in try/catch for better error reporting */
+try {
 /*global app: true, args: true, env: true, publish: true */
 /**
  * @project jsdoc
@@ -160,6 +162,15 @@ function main() {
         encoding: 'utf8'
     };
 
+    /* grimbo: turn file URIs into file paths. very basic. */
+    if ('file:/' === __dirname.substring(0, 6)) {
+        print("jsdoc.js: dirname.original=" + __dirname);
+        __dirname = __dirname.substring(6);
+        print("jsdoc.js: dirname.substring=" + __dirname);
+        __dirname = "" + new java.io.File(__dirname).getAbsolutePath();
+        print("jsdoc.js: dirname.fixed=" + __dirname);
+    }
+
     // get JSDoc version number
     info = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
     env.version = {
@@ -305,4 +316,14 @@ catch(e) {
     } else {
         throw e;
     }
+}
+/* grimbo: wrap all in try/catch for better error reporting */
+} catch(e) {
+print("jsdoc.js: " + e);
+if (e.rhinoException != null) {
+    e.rhinoException.printStackTrace();
+    process.exit(1);
+} else {
+    throw e;
+}
 }

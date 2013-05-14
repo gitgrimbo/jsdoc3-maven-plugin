@@ -14,6 +14,7 @@ const NODEJS = exports.NODEJS = 'nodejs';
 
 // hacky conversion from Windows path to URI
 function pathToUri(filepath) {
+    if (filepath && 'file:/' === filepath.substring(0, 6)) { return filepath; }
     var uri = filepath;
 
     // get drive
@@ -58,6 +59,7 @@ var vm = exports.vm = (function() {
  * @return {object} An object containing VM-specific functions for the requested module.
  */
 exports.getModule = function(modulePath) {
+    print("jsdoc/lib/jsdoc/vm[getModule] modulePath=" + modulePath);
     modulePath = [__dirname, vm, modulePath].join('/').replace(/ /g, '%20');
     if (os.platform() === 'win32') {
         modulePath = pathToUri(modulePath);
