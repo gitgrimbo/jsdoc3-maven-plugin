@@ -2,9 +2,10 @@ package com.github.phasebash.jsdoc3.maven.tasks;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
+
+import org.apache.maven.plugin.logging.Log;
 
 /**
  * A context object representing the necessary values required to run jsdoc3.
@@ -32,7 +33,9 @@ public final class TaskContext {
     /** if we shall pass the -p flag to jsdoc. */
     private final boolean includePrivate;
 
-    /**
+    /** For logging. */
+    private final Log log;
+
     /**
      * Private constructor.
      *
@@ -43,9 +46,27 @@ public final class TaskContext {
      * @param debug     if debug mode should be used.
      * @param recursive if the jsdoc task should recursively look for jsfiles.
      * @param includePrivate if private symbols should be included.
+     * @param log
      */
     TaskContext(Collection<File> sourceDir, File outputDir, File jsDocDir,
                 File tempDir, boolean debug, boolean recursive, boolean includePrivate) {
+        this(sourceDir, outputDir, jsDocDir, tempDir, debug, recursive, includePrivate, null);
+    }
+
+    /**
+     * Private constructor.
+     *
+     * @param sourceDir the source dir.
+     * @param outputDir the output dir.
+     * @param jsDocDir  the jsdoc dir.
+     * @param tempDir   the temp dir.
+     * @param debug     if debug mode should be used.
+     * @param recursive if the jsdoc task should recursively look for jsfiles.
+     * @param includePrivate if private symbols should be included.
+     * @param log
+     */
+    TaskContext(Collection<File> sourceDir, File outputDir, File jsDocDir,
+                File tempDir, boolean debug, boolean recursive, boolean includePrivate, Log log) {
         this.sourceDir = sourceDir;
         this.jsDocDir  = jsDocDir;
         this.outputDir = outputDir;
@@ -53,6 +74,7 @@ public final class TaskContext {
         this.debug     = debug;
         this.recursive = recursive;
         this.includePrivate = includePrivate;
+        this.log = log;
     }
 
     /**
@@ -108,14 +130,21 @@ public final class TaskContext {
     public boolean isRecursive() {
         return recursive;
     }
-	
+
     /**
      * Should private symbols be included.
-     * 
+     *
      * @return true for yes, false for no.
      */
     public boolean isIncludePrivate() {
         return includePrivate;
+    }
+
+    /**
+     * @return the Log.
+     */
+    public Log getLog() {
+        return log;
     }
 
     /**
@@ -136,8 +165,10 @@ public final class TaskContext {
         private boolean debug = false;
 
         private boolean recursive = false;
-		
+
         private boolean includePrivate = false;
+
+        private Log log = null;
 
         public Builder withSourceFiles(final Collection<File> sourceFiles) {
             if (sourceFiles != null) {
@@ -176,7 +207,7 @@ public final class TaskContext {
             this.debug = debug;
             return this;
         }
-		
+
         public Builder withIncludePrivate(final boolean includePrivate) {
             this.includePrivate = includePrivate;
             return this;
@@ -186,6 +217,11 @@ public final class TaskContext {
             if (directoryRoots != null) {
                 this.directoryRoots.addAll(directoryRoots);
             }
+        }
+
+        public Builder withLog(Log log) {
+            this.log = log;
+            return this;
         }
 
         public TaskContext build() {
@@ -209,7 +245,8 @@ public final class TaskContext {
                 throw new IllegalStateException("Temp directory must not be null.");
             }
 
-            return new TaskContext(sourceRoots, outputDirectory, jsDocDirectory, tempDirectory, debug, recursive, includePrivate);
+            return new TaskContext(sourceRoots, outputDirectory, jsDocDirectory, tempDirectory, debug, recursive, includePrivate, log);
         }
+
     }
 }
