@@ -11,7 +11,7 @@ public final class JsDocTasks {
 
     /** the tasks which must be executed, given how jsdoc3 is bundled. */
     private static final List<Task> TASK_LIST = Collections.unmodifiableList(Arrays.asList(
-        new CopyTask(), new UnpackTask(), new JsDocTask()
+        new CopyTask(), new UnpackTask(), new PatchJsDocTask(), new JsDocTask()
     ));
 
     /** the task context */

@@ -69,6 +69,7 @@ public class JsDocMojo extends AbstractMojo {
         builder.withOutputDirectory(outputDirectory);
         builder.withTempDirectory(workingDirectory);
         builder.withJsDocDirectory(jsDoc3Dir);
+        builder.withLog(log);
 
         try {
             final TaskContext taskContext = builder.build();
