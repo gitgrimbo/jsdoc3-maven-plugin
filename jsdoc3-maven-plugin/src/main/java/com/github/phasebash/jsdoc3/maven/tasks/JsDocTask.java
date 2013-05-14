@@ -1,7 +1,9 @@
 package com.github.phasebash.jsdoc3.maven.tasks;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
@@ -26,6 +28,52 @@ final class JsDocTask implements Task {
      */
     @Override
     public void execute(TaskContext context) throws TaskException {
+        final List<String> arguments = buildArguments(context);
+
+        Process process;
+
+        for (String arg : arguments) {
+            System.err.println(arg);
+        }
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ByteArrayOutputStream err = new ByteArrayOutputStream();
+
+        if (context.isDebug()) {
+            throw new UnsupportedOperationException("Debug mode not currently supported.");
+        } else {
+            final ProcessBuilder processBuilder = new ProcessBuilder(arguments);
+
+            try {
+                process = processBuilder.start();
+            } catch (IOException e) {
+                throw new TaskException("Unable to execute jsdoc tasks in new JVM.", e);
+            }
+        }
+
+        new StreamGobbler(process.getInputStream(), "out", out).start();
+        new StreamGobbler(process.getErrorStream(), "err", err).start();
+
+        try {
+            final int exitCode = process.waitFor();
+            if (exitCode != 0) {
+                String msg = buildErrorMessage(exitCode, out, err);
+                throw new TaskException(msg);
+            }
+        } catch (InterruptedException e) {
+            throw new TaskException("Interrupt while waiting for jsdoc task to complete.", e);
+        }
+
+        Charset charset = Charset.defaultCharset();
+        System.out.println(new String(out.toByteArray(), charset));
+        System.err.println(new String(err.toByteArray(), charset));
+    }
+
+    /**
+     * @param context
+     * @return
+     */
+    private List<String> buildArguments(TaskContext context) {
         final List<String> arguments = new LinkedList<String>();
 
         final File basePath = context.getJsDocDir();
@@ -52,7 +100,7 @@ final class JsDocTask implements Task {
         if (context.isRecursive()) {
             arguments.add("-r");
         }
-		
+
         if (context.isIncludePrivate()) {
             arguments.add("-p");
         }
@@ -64,29 +112,16 @@ final class JsDocTask implements Task {
             arguments.add(sourceFile.getAbsolutePath());
         }
 
-        Process process;
-
-        System.err.println(arguments);
-
-        if (context.isDebug()) {
-            throw new UnsupportedOperationException("Debug mode not currently supported.");
-        } else {
-            final ProcessBuilder processBuilder = new ProcessBuilder(arguments);
-
-            try {
-                process = processBuilder.start();
-            } catch (IOException e) {
-                throw new TaskException("Unable to execute jsdoc tasks in new JVM.", e);
-            }
-        }
-
-        try {
-            final int exitCode = process.waitFor();
-            if (exitCode != 0) {
-                throw new TaskException("Process died with exit code " + exitCode);
-            }
-        } catch (InterruptedException e) {
-            throw new TaskException("Interrupt while waiting for jsdoc task to complete.", e);
-        }
+        return arguments;
     }
+
+    private String buildErrorMessage(int exitCode, ByteArrayOutputStream out,
+            ByteArrayOutputStream err) {
+        String msg = "Process died with exit code " + exitCode;
+        Charset charset = Charset.defaultCharset();
+        msg += "\nout\n" + new String(out.toByteArray(), charset);
+        msg += "\nerr\n" + new String(err.toByteArray(), charset);
+        return msg;
+    }
+
 }
