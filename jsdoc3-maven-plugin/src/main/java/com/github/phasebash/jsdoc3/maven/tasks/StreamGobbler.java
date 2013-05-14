@@ -4,19 +4,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-// http://www.javaworld.com/jw-12-2000/jw-1229-traps.html?page=4
+// Based on "http://www.javaworld.com/jw-12-2000/jw-1229-traps.html?page=4"
 public class StreamGobbler extends Thread {
     InputStream in;
-    String type;
     OutputStream out;
 
-    StreamGobbler(InputStream in, String type) {
-        this(in, type, null);
-    }
-
-    StreamGobbler(InputStream in, String type, OutputStream out) {
+    StreamGobbler(InputStream in, OutputStream out) {
         this.in = in;
-        this.type = type;
         this.out = out;
     }
 
@@ -28,6 +22,7 @@ public class StreamGobbler extends Thread {
                 out.write(buffer, 0, read);
             }
         } catch (IOException ioe) {
+            // Not great exception handling.
             ioe.printStackTrace();
         }
     }
