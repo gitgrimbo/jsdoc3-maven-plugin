@@ -36,19 +36,19 @@ final class JsDocTask implements Task {
             System.err.println(arg);
         }
 
+        if (context.isDebug()) {
+            throw new UnsupportedOperationException("Debug mode not currently supported.");
+        }
+
+        final ProcessBuilder processBuilder = new ProcessBuilder(arguments);
+
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ByteArrayOutputStream err = new ByteArrayOutputStream();
 
-        if (context.isDebug()) {
-            throw new UnsupportedOperationException("Debug mode not currently supported.");
-        } else {
-            final ProcessBuilder processBuilder = new ProcessBuilder(arguments);
-
-            try {
-                process = processBuilder.start();
-            } catch (IOException e) {
-                throw new TaskException("Unable to execute jsdoc tasks in new JVM.", e);
-            }
+        try {
+            process = processBuilder.start();
+        } catch (IOException e) {
+            throw new TaskException("Unable to execute jsdoc tasks in new JVM.", e);
         }
 
         new StreamGobbler(process.getInputStream(), "out", out).start();
